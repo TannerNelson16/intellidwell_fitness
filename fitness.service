@@ -1,0 +1,21 @@
+[Unit]
+Description=Quiet Momentum Fitness Web App
+After=network.target
+                                                                                                                                                                                 
+[Service]
+Type=simple
+WorkingDirectory=/home/nelsonserver/websites/intellidwell_fitness/
+Environment="FLASK_APP=app"
+Environment="PORT=5917"
+ExecStart=/usr/bin/env python3 -m gunicorn -b 0.0.0.0:5917 app:app
+Restart=on-failure
+RestartSec=5
+User=nelsonserver
+Group=nelsonserver
+Environment="VAPID_PUBLIC_KEY=BGJy8DCvzV2TJn5IWeR8ti802W-LjSNlUrdqDOIwQ7ouO04LguMsWD-PQVbPp1e9_3M9N-AZDTftZEXHyVbzYbs"
+Environment="VAPID_PRIVATE_KEY=5OoK47h1ZGA_55izOfSQhuwzabJ_wPW5T26vUx8M0vs" 
+Environment="VAPID_EMAIL=support@intellidwell.net"
+Environment="HEALTHKIT_TOKEN=hc_intellidwell_4ecf8c58e2a8487fa6d2f1bb9c5b8e3d"
+                                                                                                                                                                                 
+[Install]
+WantedBy=multi-user.target

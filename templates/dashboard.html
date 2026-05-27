@@ -1,0 +1,466 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="view-toggle">
+  <a class="btn {% if view_mode != 'partner' %}active{% endif %}" href="{{ url_for('dashboard') }}">My dashboard</a>
+  {% if partner_summary %}
+    <a class="btn secondary {% if view_mode == 'partner' %}active{% endif %}" href="{{ url_for('dashboard', view='partner') }}">Side-by-side</a>
+  {% endif %}
+</div>
+
+<section class="hero-dashboard card">
+  <div class="hero-copy-block">
+    <div class="hero-badge-row">
+      <p class="eyebrow">Today first</p>
+      <span class="hero-day-pill">{{ dashboard_hero.workout.day }}</span>
+    </div>
+    <h2 class="hero-title">{{ dashboard_hero.workout.title }}</h2>
+    <p class="note hero-note">
+      {% if dashboard_hero.workout.is_rest_day %}
+        Recovery day, reset, recover, and keep the rhythm.
+      {% else %}
+        Your main workout focus for today, with the essentials surfaced first.
+      {% endif %}
+    </p>
+
+    <div class="hero-actions-row">
+      <a href="#quick-log" class="btn">Log today</a>
+      <a href="#recent-activity" class="btn secondary">See recent activity</a>
+    </div>
+
+    <div class="hero-graphic" aria-hidden="true">
+      <div class="graphic-orbit orbit-one"></div>
+      <div class="graphic-orbit orbit-two"></div>
+      <div class="graphic-core"></div>
+      <div class="graphic-card graphic-card-top">Focus</div>
+      <div class="graphic-card graphic-card-bottom">Consistency</div>
+    </div>
+
+    <div class="today-checks">
+      {% for check in dashboard_hero.checks %}
+      <div class="today-check {{ 'done' if check.done else '' }}">
+        <span class="check-dot"></span>
+        <span>{{ check.label }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="hero-side-grid">
+    <article class="hero-panel">
+      <p class="eyebrow">Workout plan</p>
+      {% if dashboard_hero.workout.strength %}
+      <ul class="hero-list">
+        {% for item in dashboard_hero.workout.strength[:4] %}
+        <li>{{ item }}</li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="note">{{ dashboard_hero.workout.finisher[0] if dashboard_hero.workout.finisher else 'Keep moving and recover well.' }}</p>
+      {% endif %}
+      {% if dashboard_hero.workout.core %}
+      <p class="mini-heading">Core</p>
+      <p class="note">{{ dashboard_hero.workout.core|join(' · ') }}</p>
+      {% endif %}
+      {% if dashboard_hero.workout.finisher %}
+      <p class="mini-heading">Finisher / note</p>
+      <p class="note">{{ dashboard_hero.workout.finisher[0] }}</p>
+      {% endif %}
+    </article>
+
+    <article class="hero-panel">
+      <p class="eyebrow">Today snapshot</p>
+      <div class="snapshot-grid">
+        <div>
+          <span class="snapshot-label">Completion</span>
+          <strong>{{ dashboard_hero.completed_count }}/{{ dashboard_hero.total_checks }}</strong>
+        </div>
+        <div>
+          <span class="snapshot-label">Calories</span>
+          <strong>{{ today_entry.calories }}{% if dashboard_hero.targets.calories %} / {{ dashboard_hero.targets.calories }}{% endif %}</strong>
+        </div>
+        <div>
+          <span class="snapshot-label">Protein</span>
+          <strong>{{ today_entry.protein }}g{% if dashboard_hero.targets.protein %} / {{ dashboard_hero.targets.protein }}g{% endif %}</strong>
+        </div>
+        <div>
+          <span class="snapshot-label">Water</span>
+          <strong>{{ today_entry.water_oz }}oz{% if dashboard_hero.targets.water %} / {{ dashboard_hero.targets.water }}oz{% endif %}</strong>
+        </div>
+        <div>
+          <span class="snapshot-label">Active days</span>
+          <strong>{{ dashboard_hero.active_days }}/7</strong>
+        </div>
+        <div>
+          <span class="snapshot-label">Movement streak</span>
+          <strong>{{ dashboard_hero.movement_streak }} days</strong>
+        </div>
+      </div>
+    </article>
+  </div>
+</section>
+
+<div class="dashboard dashboard-revamp">
+  <main class="dash-main">
+    <section class="card spacious-card" id="quick-log">
+      <header class="card-header stacked-mobile">
+        <div>
+          <p class="eyebrow">Quick log</p>
+          <h2 class="h3">Do the important stuff fast</h2>
+          <p class="note">The top of this page should help you act, not hunt.</p>
+        </div>
+      </header>
+
+      <div class="action-grid action-grid-priority">
+        <form method="post" class="input-card feature-card">
+          <h3 class="h4">Log workout</h3>
+          <input type="hidden" name="action" value="log_exercise">
+          <label>Type
+            <select name="workout_type">
+              <option value="vest">Weighted vest walk (30–40 min)</option>
+              <option value="strength">Strength session (push/pull/legs)</option>
+              <option value="conditioning">Conditioning (bike/tread intervals)</option>
+              <option value="fullbody">Full-body metabolic circuit</option>
+              <option value="recovery">Active recovery / easy cardio</option>
+            </select>
+          </label>
+          <div class="inline-2">
+            <label>Duration
+              <input type="text" name="duration" placeholder="e.g. 35 min">
+            </label>
+            <label>Incline
+              <input type="text" name="incline" placeholder="e.g. 6%">
+            </label>
+          </div>
+          <label class="checkbox">
+            <input type="checkbox" name="vest"> Vest on
+          </label>
+          <button type="submit" class="btn">Log workout</button>
+        </form>
+
+        <form method="post" class="input-card">
+          <h3 class="h4">Nutrition</h3>
+          <input type="hidden" name="action" value="log_nutrition">
+          <label>Calories
+            <input type="number" name="calories" min="0" step="10" placeholder="Meal calories">
+          </label>
+          <label>Protein (g)
+            <input type="number" name="protein" min="0" step="1" placeholder="Protein">
+          </label>
+          <button type="submit" class="btn">Add nutrition</button>
+        </form>
+
+        <form method="post" class="input-card">
+          <h3 class="h4">Water</h3>
+          <input type="hidden" name="action" value="log_water">
+          <label>Ounces
+            <input type="number" name="water_oz" min="0" step="5" placeholder="Add amount">
+          </label>
+          <button type="submit" class="btn">Add water</button>
+        </form>
+
+        <form method="post" class="input-card">
+          <h3 class="h4">Body metrics</h3>
+          <input type="hidden" name="action" value="log_metrics">
+          <div class="inline-2">
+            <label>Weight (lb)
+              <input type="number" name="weight" step="0.1" min="0" value="{{ today_entry.weight or '' }}">
+            </label>
+            <label>Body fat %
+              <input type="number" name="body_fat" step="0.1" min="0" max="100" value="{{ today_entry.body_fat or '' }}">
+            </label>
+          </div>
+          <button type="submit" class="btn">Save metrics</button>
+        </form>
+      </div>
+    </section>
+
+    <section class="grid two-column quick-info-grid airy-grid">
+      <article class="card card-tight">
+        <header class="card-header">
+          <div>
+            <p class="eyebrow">Recent activity</p>
+            <h2 class="h3" id="recent-activity">Today so far</h2>
+          </div>
+        </header>
+        <div class="input-card activity-log compact-block">
+          {% if today_entry.exercises %}
+            <ul>
+              {% for session in today_entry.exercises %}
+              <li>
+                <strong>{{ session.type|title }}</strong> — {{ session.duration }}
+                {% if session.incline %}<span class="muted">(Incline {{ session.incline }})</span>{% endif %}
+                {% if session.vest %}<span class="muted"> • Vest on</span>{% endif %}
+              </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="note">No workout logged yet today. Start with the big card up top.</p>
+          {% endif %}
+        </div>
+      </article>
+
+      <article class="card card-tight">
+        <header class="card-header">
+          <div>
+            <p class="eyebrow">This week</p>
+            <h2 class="h3">Momentum snapshot</h2>
+          </div>
+        </header>
+        <div class="kpi-grid compact-kpis">
+          <div class="kpi">
+            <p class="kpi-label">Active days</p>
+            <p class="kpi-value">{{ weekly_summary.active_days }}<span class="kpi-unit">/7</span></p>
+          </div>
+          <div class="kpi">
+            <p class="kpi-label">Vest walks</p>
+            <p class="kpi-value">{{ weekly_summary.vest_walks }}</p>
+          </div>
+          <div class="kpi">
+            <p class="kpi-label">Strength</p>
+            <p class="kpi-value">{{ weekly_summary.strength_sessions }}</p>
+          </div>
+          <div class="kpi">
+            <p class="kpi-label">Streak</p>
+            <p class="kpi-value">{{ weekly_summary.movement_streak }} <span class="kpi-unit">days</span></p>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <section class="card chart-showcase">
+      <header class="card-header chart-header-spacious">
+        <div>
+          <p class="eyebrow">Trends</p>
+          <h2 class="h3">Performance &amp; body composition</h2>
+          <p class="note">A calmer analytics section with clearer separation and more breathing room.</p>
+        </div>
+      </header>
+
+      <div class="chart-stack">
+        <div class="chart-panel chart-hero premium-chart-panel">
+          <div class="chart-panel-head">
+            <div>
+              <p class="eyebrow">Body composition</p>
+              <h3 class="h4">Weight &amp; body fat</h3>
+            </div>
+            <span class="chart-caption">7 day view</span>
+          </div>
+          {% if metrics_available %}
+            <canvas id="metricsChart" data-metrics='{{ metrics_chart|tojson|safe }}'></canvas>
+          {% else %}
+            <p class="note">Start logging weight or body fat to unlock this visual trend.</p>
+          {% endif %}
+        </div>
+
+        <div class="chart-panel premium-chart-panel">
+          <div class="chart-panel-head">
+            <div>
+              <p class="eyebrow">Weekly inputs</p>
+              <h3 class="h4">Calories, protein, and water</h3>
+            </div>
+            <span class="chart-caption">Daily bar comparison</span>
+          </div>
+          <canvas id="weeklyChart"
+                  data-weekly='{{ {"self": weekly_points, "partner": partner_summary.weekly_points if partner_summary else []}|tojson|safe }}'></canvas>
+        </div>
+      </div>
+    </section>
+
+    {% if view_mode == 'partner' and partner_summary %}
+    <section class="card">
+      <header class="card-header">
+        <div>
+          <p class="eyebrow">Comparison</p>
+          <h2 class="h3">You vs {{ partner_summary.username }}</h2>
+        </div>
+      </header>
+
+      <div class="compare-grid">
+        <div class="compare-person">
+          <h3 class="h4">{{ session.get('auth_username') }}</h3>
+          <ul class="compare-list">
+            <li>Calories: <strong>{{ today_entry.calories }}</strong>{% if targets.calories %}<span class="muted"> / {{ targets.calories }}</span>{% endif %}</li>
+            <li>Protein: <strong>{{ today_entry.protein }}</strong>{% if targets.protein %}<span class="muted"> / {{ targets.protein }} g</span>{% endif %}</li>
+            <li>Water: <strong>{{ today_entry.water_oz }}</strong>{% if targets.water %}<span class="muted"> / {{ targets.water }} oz</span>{% endif %}</li>
+            <li>Weight: <strong>{{ today_entry.weight or '—' }}</strong> lb</li>
+          </ul>
+        </div>
+
+        <div class="compare-person">
+          <h3 class="h4">{{ partner_summary.username }}</h3>
+          <ul class="compare-list">
+            <li>Calories: <strong>{{ partner_summary.entry.calories }}</strong>{% if partner_summary.targets.calories %}<span class="muted"> / {{ partner_summary.targets.calories }}</span>{% endif %}</li>
+            <li>Protein: <strong>{{ partner_summary.entry.protein }}</strong>{% if partner_summary.targets.protein %}<span class="muted"> / {{ partner_summary.targets.protein }} g</span>{% endif %}</li>
+            <li>Water: <strong>{{ partner_summary.entry.water_oz }}</strong>{% if partner_summary.targets.water %}<span class="muted"> / {{ partner_summary.targets.water }} oz</span>{% endif %}</li>
+            <li>Weight: <strong>{{ partner_summary.entry.weight or '—' }}</strong> lb</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="compare-charts">
+        <div class="chart-panel compact">
+          <h4 class="h4">Weight trend (7 days)</h4>
+          <canvas id="compareWeightChart" data-compare-weight='{{ compare_weight_chart|tojson|safe }}'></canvas>
+        </div>
+        <div class="chart-panel compact">
+          <h4 class="h4">Calories / Protein / Water (7 days)</h4>
+          <canvas id="compareMacroChart" data-compare-macro='{{ compare_macro_chart|tojson|safe }}'></canvas>
+        </div>
+      </div>
+    </section>
+    {% endif %}
+  </main>
+
+  <aside class="dash-side">
+    <section class="card card-tight">
+      <header class="card-header">
+        <div>
+          <p class="eyebrow">Fasting</p>
+          <h2 class="h3">Fast timer</h2>
+        </div>
+      </header>
+      <div class="progress-ring" data-progress="{{ '%.3f'|format(fast_status.progress) }}">
+        <div class="progress-inner">
+          <span class="progress-value">{{ fast_status.hours_elapsed|round(1) }}h</span>
+          <small>of {{ fast_status.target_hours }}h</small>
+        </div>
+      </div>
+      <p class="note">{{ fast_status.message }}</p>
+      <p class="note">{{ fast_status.next_event_label }} in {{ fast_status.countdown_hours|round(1) }}h</p>
+    </section>
+
+    <section class="card card-tight">
+      <header class="card-header">
+        <div>
+          <p class="eyebrow">Today’s wins</p>
+          <h2 class="h3">Markers</h2>
+        </div>
+      </header>
+      <div class="marker-grid side-markers">
+        {% for marker in success_markers %}
+        <div class="marker {{ 'met' if marker.met else '' }}">
+          <p class="marker-label">{{ marker.label }}</p>
+          <p class="marker-value">{{ marker.value }}</p>
+          <p class="marker-target">Target: {{ marker.target }}</p>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="card card-tight">
+      <header class="card-header">
+        <div>
+          <p class="eyebrow">Reminders</p>
+          <h2 class="h3">Nudges</h2>
+        </div>
+      </header>
+      <form method="post" class="input-card notification-card">
+        <input type="hidden" name="action" value="save_notifications">
+        <label>Exercise reminder time
+          <input type="time" name="exercise_time" value="{{ notification_time }}">
+        </label>
+        <div class="btn-row">
+          <button type="submit" class="btn">Save</button>
+          <button type="button" class="btn secondary" id="enablePushBtn" data-enabled="{{ 'true' if notifications_enabled else 'false' }}">
+            {% if notifications_enabled %}Re-enable{% else %}Enable{% endif %}
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <section class="card card-tight">
+      <header class="card-header">
+        <div>
+          <p class="eyebrow">Mindset</p>
+          <h2 class="h3">Gentle check-in</h2>
+          <p class="note">{{ mindset_prompt }}</p>
+        </div>
+      </header>
+      <form method="post" class="mindset-form two-column">
+        <input type="hidden" name="action" value="log_mindset">
+        <label>Energy today
+          <input type="text" name="energy" value="{{ today_entry.mindset_energy }}">
+        </label>
+        <label>One thing you did well
+          <input type="text" name="highlight" value="{{ today_entry.mindset_highlight }}">
+        </label>
+        <label class="full-width">One thing you're proud of
+          <input type="text" name="proud" value="{{ today_entry.mindset_proud }}">
+        </label>
+        <button type="submit" class="btn full-width">Save reflection</button>
+      </form>
+    </section>
+
+    <section class="card card-tight">
+      <header class="card-header">
+        <div>
+          <p class="eyebrow">Photos</p>
+          <h2 class="h3">Progress gallery</h2>
+        </div>
+      </header>
+      <form method="post" class="input-card" enctype="multipart/form-data">
+        <input type="hidden" name="action" value="upload_photo">
+        <label>Photo
+          <input type="file" name="photo_file" accept="image/*" required>
+        </label>
+        <label>Caption
+          <input type="text" name="caption" placeholder="How did today feel?">
+        </label>
+        <button type="submit" class="btn">Upload</button>
+      </form>
+      <div class="input-card gallery-card">
+        {% if recent_photos %}
+        <div class="photo-grid compact-photo-grid">
+          {% for photo in recent_photos %}
+          <figure>
+            <img src="{{ url_for('static', filename=photo.file_path) }}" alt="{{ photo.caption or 'Progress photo' }}">
+            <figcaption>
+              <strong>{{ photo.created }}</strong>
+              <span>{{ photo.caption or 'Logged for accountability' }}</span>
+            </figcaption>
+          </figure>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p class="note">No photos yet. Upload the first one.</p>
+        {% endif %}
+      </div>
+    </section>
+
+    <section class="card card-collapsible card-tight">
+      <header class="card-header">
+        <div>
+          <p class="eyebrow">Blueprint</p>
+          <h2 class="h3">Game plan</h2>
+          {% if plan.custom_text %}
+            <p class="note">{{ plan.custom_text|replace('\n', '<br>')|safe }}</p>
+          {% else %}
+            <p class="note"><em>Add your personal focus in Settings.</em></p>
+          {% endif %}
+        </div>
+        <a class="btn secondary" href="{{ url_for('settings') }}">Edit plan</a>
+      </header>
+      <details class="plan-details">
+        <summary>Show weekly structure &amp; details</summary>
+        <div class="plan-grid">
+          <div class="plan-block">
+            <h3>Weekly structure</h3>
+            <ul>
+              {% for item in plan.exercise.weekly_structure %}
+              <li>{{ item }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+          <div class="plan-block">
+            <h3>Nutrition anchors</h3>
+            <p>{{ plan.nutrition.calories.target }} kcal target (maint. {{ plan.nutrition.calories.maintenance }} kcal).</p>
+            <p>{{ plan.nutrition.protein }}</p>
+            <p>{{ plan.nutrition.mantra }}</p>
+          </div>
+        </div>
+      </details>
+    </section>
+  </aside>
+</div>
+{% endblock %}

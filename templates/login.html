@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="login-shell">
+  <div class="card login-card">
+    <header class="card-header">
+      <div>
+        <p class="eyebrow">Account Access</p>
+        <h2>Sign in to continue</h2>
+        <p class="subtitle">Protected space for Tayleur’s Intellidwell coaching.</p>
+      </div>
+    </header>
+    <form method="post" class="mindset-form">
+      <label>Username
+        <input type="text" name="username" placeholder="Username" required autofocus>
+      </label>
+      <label>Password
+        <input type="password" name="password" placeholder="Password" required>
+      </label>
+      {% if error %}
+        <div class="flash">{{ error }}</div>
+      {% endif %}
+      <button type="submit" class="btn">Sign in</button>
+      <p class="note">No account? <a href="{{ url_for('signup') }}">Create one here</a>.</p>
+    </form>
+  </div>
+</section>
+{% endblock %}

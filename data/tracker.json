@@ -1,0 +1,8 @@
+{
+  "fasting": {
+    "target_hours": 16,
+    "start_time": null,
+    "end_time": null
+  },
+  "daily_logs": {}
+}

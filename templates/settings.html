@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="login-shell wide-shell">
+  <div class="card login-card wider">
+    <header class="card-header">
+      <div>
+        <p class="eyebrow">Personalization</p>
+        <h2>Plan &amp; target settings</h2>
+        <p class="subtitle">Dial in the calorie, hydration, and game plan targets used on the dashboard.</p>
+      </div>
+    </header>
+    {% if errors %}
+      <div class="flash-container">
+        {% for err in errors %}
+          <div class="flash">{{ err }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+    <form method="post" class="mindset-form two-column">
+      <input type="hidden" name="action" value="update_profile">
+      <label>Starting weight (lb)
+        <input type="number" step="0.1" name="start_weight" value="{{ profile.start_weight or '' }}">
+      </label>
+      <label>Goal weight (lb)
+        <input type="number" step="0.1" name="goal_weight" value="{{ profile.goal_weight or '' }}">
+      </label>
+      <label>Maintenance calories
+        <input type="number" step="10" name="maintenance_calories" value="{{ profile.maintenance_calories or '' }}">
+      </label>
+      <label>Calorie target
+        <input type="number" step="10" name="calorie_target" value="{{ profile.calorie_target or '' }}">
+      </label>
+      <label>Protein target (g)
+        <input type="number" step="1" name="protein_target" value="{{ profile.protein_target or '' }}">
+      </label>
+      <label>Water goal (oz)
+        <input type="number" step="1" name="water_target" value="{{ profile.water_target or '' }}">
+      </label>
+      <label class="full-width">Game plan notes
+        <textarea name="game_plan" rows="4" placeholder="Capture your personal rules or focus areas">{{ profile.game_plan or '' }}</textarea>
+      </label>
+      <div class="full-width">
+        <button type="submit" class="btn">Save settings</button>
+        <a class="btn secondary" href="{{ url_for('dashboard') }}">Back to dashboard</a>
+      </div>
+    </form>
+  </div>
+</section>
+
+<section class="login-shell wide-shell">
+  <div class="card login-card wider">
+    <header class="card-header">
+      <div>
+        <p class="eyebrow">Connections</p>
+        <h2>Share progress with a partner</h2>
+        <p class="subtitle">Send a connection request to compare dashboards side by side.</p>
+      </div>
+    </header>
+    <div class="connection-panel">
+      <div>
+        <form method="post" class="mindset-form">
+          <input type="hidden" name="action" value="request_connection">
+          <label>Connect with username
+            <input type="text" name="connect_username" placeholder="Enter username">
+          </label>
+          <button type="submit" class="btn">Send request</button>
+        </form>
+        {% if outgoing_requests %}
+          <p class="note">Pending requests:</p>
+          <ul class="connection-list">
+            {% for req in outgoing_requests %}
+              <li>Awaiting {{ req.target.username }}'s response.</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      </div>
+      <div>
+        {% if partner_user %}
+          <p>Connected with <strong>{{ partner_user.username }}</strong>.</p>
+          <form method="post">
+            <input type="hidden" name="action" value="disconnect_partner">
+            <button type="submit" class="btn secondary">Disconnect</button>
+          </form>
+        {% else %}
+          <p class="note">No active connection yet.</p>
+        {% endif %}
+        {% if incoming_requests %}
+          <p class="note">Incoming requests:</p>
+          <ul class="connection-list">
+            {% for req in incoming_requests %}
+            <li>
+              <form method="post" class="inline-form">
+                <strong>{{ req.requester.username }}</strong>
+                <input type="hidden" name="action" value="respond_request">
+                <input type="hidden" name="request_id" value="{{ req.id }}">
+                <button type="submit" name="decision" value="accept" class="btn">Accept</button>
+                <button type="submit" name="decision" value="decline" class="btn secondary">Decline</button>
+              </form>
+            </li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="login-shell wide-shell">
+  <div class="card login-card wider">
+    <header class="card-header">
+      <div>
+        <p class="eyebrow">Danger zone</p>
+        <h2>Delete account</h2>
+        <p class="subtitle">Removing your account deletes entries, photos, and notifications.</p>
+      </div>
+    </header>
+    <form method="post" class="mindset-form delete-form">
+      <input type="hidden" name="action" value="delete_account">
+      <label>Type <strong>DELETE</strong> or your username to confirm
+        <input type="text" name="confirm_text" placeholder="DELETE">
+      </label>
+      <button type="submit" class="btn danger">Delete everything</button>
+    </form>
+  </div>
+</section>
+{% endblock %}

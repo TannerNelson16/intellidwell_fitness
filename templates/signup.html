@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="login-shell">
+  <div class="card login-card">
+    <header class="card-header">
+      <div>
+        <p class="eyebrow">Create Account</p>
+        <h2>Join Intellidwell Fitness</h2>
+        <p class="subtitle">Set up your own tracker and personalize the plan.</p>
+      </div>
+    </header>
+    <form method="post" class="mindset-form">
+      <label>Username
+        <input type="text" name="username" placeholder="Choose a username" required autofocus>
+      </label>
+      <label>Password
+        <input type="password" name="password" placeholder="Create a password" required>
+      </label>
+      <label>Confirm password
+        <input type="password" name="confirm" placeholder="Confirm password" required>
+      </label>
+      {% if error %}
+        <div class="flash">{{ error }}</div>
+      {% endif %}
+      <button type="submit" class="btn">Create account</button>
+      <p class="note">Already have an account? <a href="{{ url_for('login') }}">Sign in</a>.</p>
+    </form>
+  </div>
+</section>
+{% endblock %}
