@@ -1,41 +1,44 @@
-# IntelliDwell Fitness Companion
+# 🏋️ IntelliDwell Fitness Tracker & HealthKit Companion
 
-An interactive fitness and health-tracking companion web application. Log workouts, chart performance metrics, and manage custom exercise lists.
-
----
-
-## 🚀 Key Features
-* Tailored custom software architecture optimized for NelsonServer.
-* Robust configuration models with clean environment variable fallback systems.
-* Seamless integration with self-hosted bare repository networks and off-site cloud backups.
+An interactive, self-hosted fitness tracking companion within the IntelliDwell ecosystem. Tracks workouts, traces weight fluctuations, logs meal calories, and leverages VAPID web-push notifications alongside mobile HealthKit API synchronization.
 
 ---
 
-## 🛠️ Technology Stack
-* **Core**: Python, Flask, SQLite, Chart.js telemetry graphs, Glassmorphic UI design
-* **Environment**: Linux Server deployment compatibility.
+## 🔬 Core Features & Architecture
+### 📊 Analytics & Push Architecture
+* **Pywebpush Native HUD**: Features interactive VAPID browser notifications managed by a local Service Worker (`static/js/sw.js`) and scheduled by `BackgroundScheduler`.
+* **Gram-Specific Calorie Logger**: Database models tracking specific meal logs broken down into breakfast, lunch, dinner, and snack entries (`cal_breakfast`, `cal_lunch`, etc.).
+* **Progression Photo Cabinet**: File management directories caching weekly weight progress images with secure hashes.
+* **Mobile Sync Endpoint**: Secure POST routes (`/api/healthkit`) to consume telemetry data directly from Apple HealthKit.
 
 ---
 
-## 📦 Local Installation & Setup
-
-1. Set up virtual environment and install requirements: `pip install -r requirements.txt`
-2. Start Flask development server: `python app.py`
-3. Access via `http://localhost:5000`
+## 🛠️ Technology Stack & Environment
+* **Core Technologies**: Flask (Python), SQLAlchemy (SQLite), pywebpush (VAPID), APScheduler, HealthKit REST API
+* **Deployment Workspace**: NelsonServer private self-hosted infrastructure.
 
 ---
 
-## 📡 NelsonServer Dual-Push Deployment Configuration
+## 📦 Setup & Local Installation
+1. Configure requirements in a virtual environment: `pip install -r requirements.txt`
+2. Generate VAPID push keys and record them in your local `.env`:
+   * `VAPID_PUBLIC_KEY` & `VAPID_PRIVATE_KEY`
+   * `HEALTHKIT_TOKEN` (for authenticating mobile synchronization uploads)
+3. Launch database bootstrap & webserver: `python3 app.py` (runs on default port `5000` or as system service `fitness.service`)
 
-This repository is configured with **automatic local & cloud synchronization**! 
+---
 
-* **Local bare repository**: `/srv/git/intellidwell_fitness.git`
-* **GitHub remote**: `git@github.com:TannerNelson16/intellidwell_fitness.git`
+## 📡 NelsonServer Dual-Push Configuration
 
-### Secure Dual-Push
-Whenever you run `git push origin`, it instantly and securely uploads your commits to **both** your local private bare repository on NelsonServer and your off-site GitHub account in a single step!
+This repository is permanently configured with a dual-remote pipeline:
+* **Local Bare Server Repository**: `/srv/git/intellidwell_fitness.git`
+* **GitHub Repository**: `git@github.com:TannerNelson16/intellidwell_fitness.git`
 
+### Unified Push
+Whenever you make commits, a single:
 ```bash
 git push origin main
 ```
-*Your secrets, `.env` config credentials, and local databases are protected locally in your `.gitignore` shield, ensuring only clean source code reaches GitHub.*
+instantly synchronizes your codebase with **both** your local private server and your GitHub account at the same time!
+
+*All private configuration credentials (`.env`), databases, and large media files are completely isolated locally via `.gitignore` shields, ensuring only pristine source code reaches GitHub.*
